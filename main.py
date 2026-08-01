@@ -40,5 +40,30 @@ def create_task(task: NewTask):
     tasks_list.append(new_task)
     return new_task
 
+from typing import Optional
 
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    done: Optional[bool] = None
+
+@app.put("/tasks/{id}")
+def update_task(id: int, updated_task: TaskUpdate):
+    if updated_task.title is None and updated_task.done is None:
+        return JSONResponse(status_code=400, content={"error": "no fields to update"})
+    for task in tasks_list:
+        if task["id"] == id:
+            if updated_task.title is not None:
+                task["title"] = updated_task.title
+            if updated_task.done is not None:
+                task["done"] = updated_task.done
+            return task
+    return JSONResponse(status_code=404, content={"error": f"Task {id} not found"})
+
+@app.delete("/tasks/{id}", status_code=204)
+def delete_task(id: int):
+    for task in tasks_list:
+        if task["id"] == id:
+            tasks_list.remove(task)
+            return
+    return JSONResponse(status_code=404, content={"error": f"Task {id} not found"})
 
